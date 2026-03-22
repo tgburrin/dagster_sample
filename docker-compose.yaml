@@ -1,0 +1,87 @@
+volumes:
+    hf-pg-data:
+    hf-dg-storage:
+
+networks:
+    hf-dagster-net:
+
+services:
+  dag-postgres:
+    cap_add:
+      - SYS_PTRACE
+
+    image: postgres:17
+    ports:
+      - '15432:5432'
+    networks:
+      - hf-dagster-net
+    volumes:
+      - ./scripts/postgres_init:/docker-entrypoint-initdb.d
+      - hf-pg-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=passw0rd
+
+  dag-monitor:
+    cap_add:
+      - SYS_PTRACE
+    image: prom/prometheus:v3.9.1
+    networks:
+      - hf-dagster-net
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - '9090:9090'
+
+  dag-webserver:
+    cap_add:
+      - SYS_PTRACE
+
+    image: dagster-custom
+    # build:
+    #     dockerfile: ./dagster_image/Dockerfile
+    ports:
+      - '8080:3000'
+    networks:
+      - hf-dagster-net
+    environment:
+      - PGHOST=dag-postgres
+      - PGUSER=dagster
+      - PGPASSWORD=dagster
+      - PYTHONDONTWRITEBYTECODE=1
+      - DAGSTER_HOME=/dagster_home
+    volumes:
+      - hf-dg-storage:/storage
+      - ./dagster_home:/dagster_home
+      - ./dbt_projects:/dbt_projects
+      - ./workspace:/workspace
+    command: /bin/bash -c "sleep 5 && dagster-webserver -h 0.0.0.0 -w /workspace/workspace.yaml"
+    # command: /bin/bash -c 'while `true`; do sleep 5 && date; done'
+    depends_on:
+      - dag-postgres
+
+  dag-worker:
+    cap_add:
+      - SYS_PTRACE
+
+    image: dagster-custom
+    # build:
+    #     dockerfile: ./dagster_image/Dockerfile
+    networks:
+      - hf-dagster-net
+    environment:
+      - PGHOST=dag-postgres
+      - PGUSER=dagster
+      - PGPASSWORD=dagster
+      - PYTHONDONTWRITEBYTECODE=1
+      - DAGSTER_HOME=/dagster_home
+    volumes:
+      - ./scratch:/working_dir
+      - hf-dg-storage:/storage
+      - ./dagster_home:/dagster_home
+      - ./dbt_projects:/dbt_projects
+      - ./workspace:/workspace
+    command: /bin/bash -c "sleep 10 && dagster-daemon run  -w /workspace/workspace.yaml"
+    # command: /bin/bash -c 'while `true`; do sleep 5 && date; done'
+    depends_on:
+      - dag-postgres
+      - dag-webserver

@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: nypd_data_job
+    schema: analytics
+    tables:
+      - name: nypd_arrests
+        config:
+          meta:
+            dagster:
+              asset_key: ['nypd_raw_data']

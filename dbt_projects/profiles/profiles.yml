@@ -1,0 +1,21 @@
+dbt_nypd_data:
+  outputs:
+    dev:
+      dbname: analytics
+      host: dag-postgres
+      password: passw0rd
+      port: 5432
+      schema: analytics
+      threads: 4
+      type: postgres
+      user: analytics
+    local:
+      dbname: analytics
+      host: localhost
+      password: passw0rd
+      port: 15432
+      schema: analytics
+      threads: 4
+      type: postgres
+      user: analytics
+  target: dev

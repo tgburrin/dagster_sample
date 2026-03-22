@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: arrests_by_date
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: arrest_date
+        data_type: date
+      - name: total
+        data_type: bigint
+
+  - name: arrests_by_boro
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: arrest_date
+        data_type: date
+      - name: borough_code
+        data_type: text
+        constraints:
+          - type: not_null
+      - name: total
+        data_type: bigint

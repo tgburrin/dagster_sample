@@ -1,0 +1,5 @@
+load_from:
+  - python_file:
+      working_directory: /workspace
+      relative_path: nypd_data/definitions.py
+      location_name: nypd_arrests

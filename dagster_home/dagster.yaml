@@ -1,0 +1,39 @@
+storage:
+  postgres:
+    postgres_db:
+      username: dagster
+      password: dagster
+      hostname: dag-postgres
+      db_name: dagster
+      port: 5432
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: /storage/artifacts
+compute_logs:
+  module: dagster.core.storage.local_compute_log_manager
+  class: LocalComputeLogManager
+  config:
+    base_dir: /storage/compute_logs
+run_monitoring:
+  enabled: true
+  # values below are the defaults, and don't need to be specified except to override them
+  start_timeout_seconds: 180
+  cancel_timeout_seconds: 180
+  # max_resume_run_attempts: 3 # experimental if above 0
+  poll_interval_seconds: 120
+telemetry:
+  enabled: false
+nux:
+  enabled: false
+retention:
+  schedule:
+    purge_after_days: 90
+  sensor:
+    purge_after_days:
+      skipped: 7
+      failure: 30
+      success: -1
+concurrency:
+  default_op_concurrency_limit: 64
